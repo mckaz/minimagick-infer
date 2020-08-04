@@ -566,7 +566,7 @@ module MiniMagick
 
     # @private
     def run_command(tool_name, *args)
-      MiniMagick::Tool.const_get(tool_name.capitalize).new do |builder|
+      RDL.type_cast(MiniMagick::Tool.const_get(tool_name.capitalize), '[s]MiniMagick::Tool').new do |builder|
         args.each do |arg|
           builder << arg
         end

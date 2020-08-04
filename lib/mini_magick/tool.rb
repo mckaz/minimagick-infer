@@ -55,6 +55,7 @@ module MiniMagick
 
       @name  = name
       @args  = []
+      #@whiny = options.is_a?(Hash) ? RDL.type_cast(options, "Hash<Symbol, %bool>").fetch(:whiny, MiniMagick.whiny) : options
       @whiny = options.is_a?(Hash) ? options.fetch(:whiny, MiniMagick.whiny) : options
     end
 
@@ -133,7 +134,7 @@ module MiniMagick
       exe.unshift "magick" if MiniMagick.imagemagick7? && name != "magick"
       exe.unshift "gm" if MiniMagick.graphicsmagick?
       exe.unshift File.join(MiniMagick.cli_path, exe.shift) if MiniMagick.cli_path
-      Array(MiniMagick.cli_prefix).reverse_each { |p| exe.unshift p } if MiniMagick.cli_prefix
+      Array(MiniMagick.cli_prefix).reverse_each { |p| exe.unshift RDL.type_cast(p, "String") } if MiniMagick.cli_prefix
       exe
     end
 

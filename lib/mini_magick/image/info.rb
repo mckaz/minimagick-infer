@@ -42,7 +42,7 @@ module MiniMagick
 
       def cheap_info(value)
         @info.fetch(value) do
-          format, width, height, size = self["%m %w %h %b"].split(" ")
+          format, width, height, size = RDL.type_cast(self["%m %w %h %b"], "String").split(" ")
 
           path = @path
           path = path.match(/\[\d+\]$/).pre_match if path =~ /\[\d+\]$/
@@ -67,7 +67,7 @@ module MiniMagick
       end
 
       def mime_type
-        "image/#{self["format"].downcase}"
+        "image/#{RDL.type_cast(self["format"], "String").downcase}"
       end
 
       def resolution(unit = nil)
@@ -85,7 +85,7 @@ module MiniMagick
       def exif
         @info["exif"] ||= (
           hash = {}
-          output = self["%[EXIF:*]"]
+          output = RDL.type_cast(self["%[EXIF:*]"], "String")
 
           output.each_line do |line|
             line = line.chomp("\n")
@@ -178,7 +178,7 @@ module MiniMagick
 
       def decode_comma_separated_ascii_characters(encoded_value)
         return encoded_value unless encoded_value.include?(',')
-        encoded_value.scan(/\d+/).map(&:to_i).map(&:chr).join
+        RDL.type_cast(encoded_value.scan(/\d+/).map(&:to_i).map(&:chr), "Array<String>").join
       end
 
       def path

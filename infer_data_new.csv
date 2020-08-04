@@ -1,0 +1,531 @@
+Class,Method,Inferred Type,Original Type,Source Code,Comments
+[s]MiniMagick,version,() -> XXX,,"def self.version
+    Gem::Version.new VERSION::STRING
+  end"
+[s]MiniMagick::Configuration,extended,(MiniMagick::Configuration) -> XXX,,"def self.extended(base)
+      base.validate_on_create = true
+      base.validate_on_write = true
+      base.whiny = true
+      base.shell_api = ""open3""
+      base.logger = Logger.new($stdout).tap { |l| l.level = Logger::INFO }
+    end"
+[s]MiniMagick::Image,read,"((IO or String), ?[ to_s: () -> String ]) -> XXX",,"def self.read(stream, ext = nil)
+      if stream.is_a?(String)
+        stream = StringIO.new(stream)
+      end
+
+      create(ext) { |file| IO.copy_stream(stream, file) }
+    end"
+[s]MiniMagick::Image,import_pixels,"(XXX, XXX, XXX, XXX, XXX, ?XXX) -> XXX",,"def self.import_pixels(blob, columns, rows, depth, map, format = 'png')
+      # Create an image object with the raw pixel data string:
+      create("".dat"", false) { |f| f.write(blob) }.tap do |image|
+        output_path = image.path.sub(/\.\w+$/, "".#{format}"")
+        # Use ImageMagick to convert the raw data file to an image file of the
+        # desired format:
+        MiniMagick::Tool::Convert.new do |convert|
+          convert.size ""#{columns}x#{rows}""
+          convert.depth depth
+          convert << ""#{map}:#{image.path}""
+          convert << output_path
+        end
+
+        image.path.replace output_path
+      end
+    end"
+[s]MiniMagick::Image,create,"(?[ to_s: () -> String ], ?XXX) { XXX } -> XXX",,"def self.create(ext = nil, validate = MiniMagick.validate_on_create, &block)
+      tempfile = MiniMagick::Utilities.tempfile(ext.to_s.downcase, &block)
+
+      new(tempfile.path, tempfile).tap do |image|
+        image.validate! if validate
+      end
+    end"
+[s]MiniMagick::Tool,option_methods,() -> (XXX or XXX),,"def self.option_methods
+      @option_methods ||= (
+        tool = new(whiny: false)
+        tool << ""-help""
+        help_page = tool.call(stderr: false)
+
+        cli_options = help_page.scan(/^\s+-[a-z\-]+/).map(&:strip)
+        if tool.name == ""mogrify"" && MiniMagick.graphicsmagick?
+          # These options were undocumented before 2015-06-14 (see gm bug 302)
+          cli_options |= %w[-box -convolve -gravity -linewidth -mattecolor -render -shave]
+        end
+
+        cli_options.map { |o| o[1..-1].tr('-','_') }
+      )
+    end"
+MiniMagick::Configuration,configure,() { (MiniMagick::Configuration) -> XXX } -> XXX,,"def configure
+      yield self
+    end"
+MiniMagick::Configuration,processor,() -> String,,"def processor
+      @processor ||= CLI_DETECTION.values.detect do |processor|
+        MiniMagick::Utilities.which(processor)
+      end
+    end"
+MiniMagick::Configuration,processor=,([ to_s: () -> String ]) -> XXX,,"def processor=(processor)
+      @processor = processor.to_s
+
+      unless CLI_DETECTION.value?(@processor)
+        raise ArgumentError,
+          ""processor has to be set to either \""magick\"", \""mogrify\"" or \""gm\"""" \
+          "", was set to #{@processor.inspect}""
+      end
+    end"
+MiniMagick::Configuration,cli=,([ inspect: () -> XXX ]) -> nil,,"def cli=(value)
+      @cli = value
+
+      if not CLI_DETECTION.key?(@cli)
+        raise ArgumentError,
+          ""CLI has to be set to either :imagemagick, :imagemagick7 or :graphicsmagick"" \
+          "", was set to #{@cli.inspect}""
+      end
+    end"
+MiniMagick::Configuration,debug=,(XXX) -> XXX,,"def debug=(value)
+      warn ""MiniMagick.debug is deprecated and will be removed in MiniMagick 5. Use `MiniMagick.logger.level = Logger::DEBUG` instead.""
+      logger.level = value ? Logger::DEBUG : Logger::INFO
+    end"
+MiniMagick::Configuration,reload_tools,() -> nil,,"def reload_tools
+      warn ""MiniMagick.reload_tools is deprecated because it is no longer necessary""
+    end"
+MiniMagick::Image,initialize,"([ to_s: () -> String ], ?Tempfile) { XXX } -> self",,"def initialize(input_path, tempfile = nil, &block)
+      @path = input_path.to_s
+      @tempfile = tempfile
+      @info = MiniMagick::Image::Info.new(@path)
+
+      combine_options(&block) if block
+    end"
+MiniMagick::Image,==,([ signature: () -> XXX ]) -> (false or true),,"def ==(other)
+      self.class == other.class && signature == other.signature
+    end"
+MiniMagick::Image,hash,() -> XXX,,"def hash
+      signature.hash
+    end"
+MiniMagick::Image,to_blob,() -> String,,"def to_blob
+      File.binread(path)
+    end"
+MiniMagick::Image,valid?,() -> (false or true),,"def valid?
+      validate!
+      true
+    rescue MiniMagick::Invalid
+      false
+    end"
+MiniMagick::Image,validate!,() -> XXX,,"def validate!
+      identify
+    rescue MiniMagick::Error => error
+      raise MiniMagick::Invalid, error.message
+    end"
+MiniMagick::Image,[],([ to_s: () -> String ]) -> XXX,,"def [](value)
+      @info[value.to_s]
+    end"
+MiniMagick::Image,layers,() -> XXX,,"def layers
+      layers_count = identify.lines.count
+      layers_count.times.map do |idx|
+        MiniMagick::Image.new(""#{path}[#{idx}]"")
+      end
+    end"
+MiniMagick::Image,get_pixels,() -> XXX,,"def get_pixels
+      convert = MiniMagick::Tool::Convert.new
+      convert << path
+      convert.depth(8)
+      convert << ""RGB:-""
+
+      # Do not use `convert.call` here. We need the whole binary (unstripped) output here.
+      shell = MiniMagick::Shell.new
+      output, * = shell.run(convert.command)
+
+      pixels_array = output.unpack(""C*"")
+      pixels = pixels_array.each_slice(3).each_slice(width).to_a
+
+      # deallocate large intermediary objects
+      output.clear
+      pixels_array.clear
+
+      pixels
+    end"
+MiniMagick::Image,format,"(XXX, ?XXX, ?[ each: () {(XXX, XXX) -> XXX} -> XXX ]) { (([ <<: (XXX) -> XXX ] and [ send: (String, XXX) -> XXX ])) -> XXX } -> MiniMagick::Image",,"def format(format, page = 0, read_opts={})
+      if @tempfile
+        new_tempfile = MiniMagick::Utilities.tempfile("".#{format}"")
+        new_path = new_tempfile.path
+      else
+        new_path = Pathname(path).sub_ext("".#{format}"").to_s
+      end
+
+      input_path = path.dup
+      input_path << ""[#{page}]"" if page && !layer?
+
+      MiniMagick::Tool::Convert.new do |convert|
+        read_opts.each do |opt, val|
+          convert.send(opt.to_s, val)
+        end
+        convert << input_path
+        yield convert if block_given?
+        convert << new_path
+      end
+
+      if @tempfile
+        destroy!
+        @tempfile = new_tempfile
+      else
+        File.delete(path) unless path == new_path || layer?
+      end
+
+      path.replace new_path
+      @info.clear
+
+      self
+    end"
+MiniMagick::Image,combine_options,() { XXX } -> MiniMagick::Image,,"def combine_options(&block)
+      mogrify(&block)
+    end"
+MiniMagick::Image,method_missing,"(String, *XXX) -> MiniMagick::Image",,"def method_missing(name, *args)
+      mogrify do |builder|
+        builder.send(name, *args)
+      end
+    end"
+MiniMagick::Image,respond_to_missing?,"(String, ?XXX) -> (false or true)",,"def respond_to_missing?(method_name, include_private = false)
+      MiniMagick::Tool::Mogrify.option_methods.include?(method_name.to_s)
+    end"
+MiniMagick::Image,write,((IO or String)) -> Number,,"def write(output_to)
+      case output_to
+      when String, Pathname
+        if layer?
+          MiniMagick::Tool::Convert.new do |builder|
+            builder << path
+            builder << output_to
+          end
+        else
+          FileUtils.copy_file path, output_to unless path == output_to.to_s
+        end
+      else
+        IO.copy_stream File.open(path, ""rb""), output_to
+      end
+    end"
+MiniMagick::Image,composite,"([ path: () -> XXX ], ?XXX, ?[ path: () -> XXX ]) { ([ <<: (XXX) -> XXX ]) -> XXX } -> MiniMagick::Image",,"def composite(other_image, output_extension = type.downcase, mask = nil)
+      output_tempfile = MiniMagick::Utilities.tempfile("".#{output_extension}"")
+
+      MiniMagick::Tool::Composite.new do |composite|
+        yield composite if block_given?
+        composite << other_image.path
+        composite << path
+        composite << mask.path if mask
+        composite << output_tempfile.path
+      end
+
+      Image.new(output_tempfile.path, output_tempfile)
+    end"
+MiniMagick::Image,collapse!,(?XXX) -> MiniMagick::Image,,"def collapse!(frame = 0)
+      mogrify(frame) { |builder| builder.quality(100) }
+    end"
+MiniMagick::Image,destroy!,() -> nil,,"def destroy!
+      if @tempfile
+        FileUtils.rm_f @tempfile.path.sub(/mpc$/, ""cache"") if @tempfile.path.end_with?("".mpc"")
+        @tempfile.unlink
+      end
+    end"
+MiniMagick::Image,identify,() { ([ <<: (XXX) -> XXX ]) -> XXX } -> XXX,,"def identify
+      MiniMagick::Tool::Identify.new do |builder|
+        yield builder if block_given?
+        builder << path
+      end
+    end"
+MiniMagick::Image,run_command,"((String or Symbol), *XXX) -> XXX",,"def run_command(tool_name, *args)
+      RDL.type_cast(MiniMagick::Tool.const_get(tool_name.capitalize), '[s]MiniMagick::Tool').new do |builder|
+        args.each do |arg|
+          builder << arg
+        end
+      end
+    end"
+MiniMagick::Image,mogrify,"(?XXX) { (([ <<: ((String or XXX)) -> XXX ] and [ quality: (Number) -> XXX ] and [ send: (XXX, *XXX) -> XXX ])) -> XXX } -> MiniMagick::Image",,"def mogrify(page = nil)
+      MiniMagick::Tool::MogrifyRestricted.new do |builder|
+        yield builder if block_given?
+        builder << (page ? ""#{path}[#{page}]"" : path)
+      end
+
+      @info.clear
+
+      self
+    end"
+MiniMagick::Image,layer?,() -> (false or true),,"def layer?
+      path =~ /\[\d+\]$/
+    end"
+MiniMagick::Image,landscape?,() -> (false or true),,"def landscape?
+      width > height
+    end"
+MiniMagick::Image,portrait?,() -> (false or true),,"def portrait?
+      height > width
+    end"
+MiniMagick::Image::Info,initialize,(String) -> self,,"def initialize(path)
+        @path = path
+        @info = {}
+      end"
+MiniMagick::Image::Info,[],"(XXX, *XXX) -> String",,"def [](value, *args)
+        case value
+        when ""format"", ""width"", ""height"", ""dimensions"", ""size"", ""human_size""
+          cheap_info(value)
+        when ""colorspace""
+          colorspace
+        when ""mime_type""
+          mime_type
+        when ""resolution""
+          resolution(*args)
+        when ""signature""
+          signature
+        when /^EXIF\:/i
+          raw_exif(value)
+        when ""exif""
+          exif
+        when ""details""
+          details
+        when ""data""
+          data
+        else
+          raw(value)
+        end
+      end"
+MiniMagick::Image::Info,clear,() -> XXX,,"def clear
+        @info.clear
+      end"
+MiniMagick::Image::Info,cheap_info,(XXX) -> XXX,,"def cheap_info(value)
+        @info.fetch(value) do
+          format, width, height, size = RDL.type_cast(self[""%m %w %h %b""], ""String"").split("" "")
+
+          path = @path
+          path = path.match(/\[\d+\]$/).pre_match if path =~ /\[\d+\]$/
+
+          @info.update(
+            ""format""     => format,
+            ""width""      => Integer(width),
+            ""height""     => Integer(height),
+            ""dimensions"" => [Integer(width), Integer(height)],
+            ""size""       => File.size(path),
+            ""human_size"" => size,
+          )
+
+          @info.fetch(value)
+        end
+      rescue ArgumentError, TypeError
+        raise MiniMagick::Invalid, ""image data can't be read""
+      end"
+MiniMagick::Image::Info,colorspace,() -> XXX,,"def colorspace
+        @info[""colorspace""] ||= self[""%r""]
+      end"
+MiniMagick::Image::Info,mime_type,() -> String,,"def mime_type
+        ""image/#{RDL.type_cast(self[""format""], ""String"").downcase}""
+      end"
+MiniMagick::Image::Info,resolution,(?XXX) -> XXX,,"def resolution(unit = nil)
+        output = identify do |b|
+          b.units unit if unit
+          b.format ""%x %y""
+        end
+        output.split("" "").map(&:to_i)
+      end"
+MiniMagick::Image::Info,raw_exif,(XXX) -> String,,"def raw_exif(value)
+        self[""%[#{value}]""]
+      end"
+MiniMagick::Image::Info,exif,() -> XXX,,"def exif
+        @info[""exif""] ||= (
+          hash = {}
+          output = RDL.type_cast(self[""%[EXIF:*]""], ""String"")
+
+          output.each_line do |line|
+            line = line.chomp(""\n"")
+
+            case MiniMagick.cli
+            when :imagemagick, :imagemagick7
+              if match = line.match(/^exif:/)
+                key, value = match.post_match.split(""="", 2)
+                value = decode_comma_separated_ascii_characters(value) if ASCII_ENCODED_EXIF_KEYS.include?(key)
+                hash[key] = value
+              else
+                hash[hash.keys.last] << ""\n#{line}""
+              end
+            when :graphicsmagick
+              next if line == ""unknown""
+              key, value = line.split(""="", 2)
+              value.gsub!(""\\012"", ""\n"") # convert ""\012"" characters to newlines
+              hash[key] = value
+            end
+          end
+
+          hash
+        )
+      end"
+MiniMagick::Image::Info,raw,(XXX) -> XXX,,"def raw(value)
+        @info[""raw:#{value}""] ||= identify { |b| b.format(value) }
+      end"
+MiniMagick::Image::Info,signature,() -> XXX,,"def signature
+        @info[""signature""] ||= self[""%#""]
+      end"
+MiniMagick::Image::Info,data,() -> XXX,,"def data
+        raise Error, ""MiniMagick::Image#data isn't supported on GraphicsMagick. Use MiniMagick::Image#details instead."" if MiniMagick.graphicsmagick?
+
+        @info[""data""] ||= (
+          json = MiniMagick::Tool::Convert.new do |convert|
+            convert << path
+            convert << ""json:""
+          end
+
+          data = JSON.parse(json)
+          data = data.fetch(0) if data.is_a?(Array)
+          data.fetch(""image"")
+        )
+      end"
+MiniMagick::Image::Info,identify,() { (([ <<: (XXX) -> XXX ] and [ format: (String) -> XXX ] and [ units: (XXX) -> XXX ])) -> XXX } -> XXX,,"def identify
+        MiniMagick::Tool::Identify.new do |builder|
+          yield builder if block_given?
+          builder << path
+        end
+      end"
+MiniMagick::Image::Info,decode_comma_separated_ascii_characters,(([ <<: (String) -> XXX ] and [ include?: (String) -> XXX ] and [ scan: (Regexp) -> XXX ])) -> ([ <<: (String) -> XXX ] and [ include?: (String) -> XXX ] and [ scan: (Regexp) -> XXX ]),,"def decode_comma_separated_ascii_characters(encoded_value)
+        return encoded_value unless encoded_value.include?(',')
+        RDL.type_cast(encoded_value.scan(/\d+/).map(&:to_i).map(&:chr), ""Array<String>"").join
+      end"
+MiniMagick::Image::Info,path,() -> String,,"def path
+        value = @path
+        value += ""[0]"" unless value =~ /\[\d+\]$/
+        value
+      end"
+MiniMagick::Shell,run,"(([ first: () -> XXX ] and [ join: (String) -> XXX ]), ?([ []: (:stderr) -> XXX ] and [ []: (:stdin) -> XXX ] and [ fetch: (:whiny, XXX) -> XXX ])) -> [XXX, XXX, XXX]",,"def run(command, options = {})
+      stdout, stderr, status = execute(command, stdin: options[:stdin])
+
+      if status != 0 && options.fetch(:whiny, MiniMagick.whiny)
+        fail MiniMagick::Error, ""`#{command.join("" "")}` failed with error:\n#{stderr}""
+      end
+
+      $stderr.print(stderr) unless options[:stderr] == false
+
+      [stdout, stderr, status]
+    end"
+MiniMagick::Shell,execute,"(([ first: () -> XXX ] and [ join: (String) -> XXX ]), ?XXX) -> [String, String, Number]",,"def execute(command, options = {})
+      stdout, stderr, status =
+        log(command.join("" "")) do
+          send(""execute_#{MiniMagick.shell_api.gsub(""-"", ""_"")}"", command, options)
+        end
+
+      [stdout, stderr, status.exitstatus]
+    rescue Errno::ENOENT, IOError
+      ["""", ""executable not found: \""#{command.first}\"""", 127]
+    end"
+MiniMagick::Shell,log,(XXX) { XXX } -> nil,,"def log(command, &block)
+      value = nil
+      duration = Benchmark.realtime { value = block.call }
+      MiniMagick.logger.debug ""[%.2fs] %s"" % [duration, command]
+      value
+    end"
+MiniMagick::Tool,initialize,"(String, ?[ is_a?: (Class) -> XXX ]) -> self",,"def initialize(name, options = {})
+      warn ""MiniMagick::Tool.new(false) is deprecated and will be removed in MiniMagick 5, use MiniMagick::Tool.new(whiny: false) instead."" if !options.is_a?(Hash)
+
+      @name  = name
+      @args  = []
+      @whiny = options.is_a?(Hash) ? RDL.type_cast(options, ""Hash<Symbol, %bool>"").fetch(:whiny, MiniMagick.whiny) : options
+    end"
+MiniMagick::Tool,call,"(*XXX) { ([ chomp: (String) -> XXX ], XXX, XXX) -> XXX } -> XXX",,"def call(*args)
+      options = args[-1].is_a?(Hash) ? args.pop : {}
+      warn ""Passing whiny to MiniMagick::Tool#call is deprecated and will be removed in MiniMagick 5, use MiniMagick::Tool.new(whiny: false) instead."" if args.any?
+      whiny = args.fetch(0, @whiny)
+
+      options[:whiny] = whiny
+      options[:stderr] = false if block_given?
+
+      shell = MiniMagick::Shell.new
+      stdout, stderr, status = shell.run(command, options)
+      yield stdout, stderr, status if block_given?
+
+      stdout.chomp(""\n"")
+    end"
+MiniMagick::Tool,command,"() -> [XXX, XXX]",,"def command
+      [*executable, *args]
+    end"
+MiniMagick::Tool,executable,() -> Array<String>,,"def executable
+      exe = [name]
+      exe.unshift ""magick"" if MiniMagick.imagemagick7? && name != ""magick""
+      exe.unshift ""gm"" if MiniMagick.graphicsmagick?
+      exe.unshift File.join(MiniMagick.cli_path, exe.shift) if MiniMagick.cli_path
+      Array(MiniMagick.cli_prefix).reverse_each { |p| exe.unshift RDL.type_cast(p, ""String"") } if MiniMagick.cli_prefix
+      exe
+    end"
+MiniMagick::Tool,<<,([ to_s: () -> String ]) -> MiniMagick::Tool,,"def <<(arg)
+      args << arg.to_s
+      self
+    end"
+MiniMagick::Tool,merge!,([ each: () {(XXX) -> XXX} -> XXX ]) -> MiniMagick::Tool,,"def merge!(new_args)
+      new_args.each { |arg| self << arg }
+      self
+    end"
+MiniMagick::Tool,+,(*XXX) -> MiniMagick::Tool,,"def +(*values)
+      args[-1] = args[-1].sub(/^-/, '+')
+      self.merge!(values)
+      self
+    end"
+MiniMagick::Tool,stack,() { (MiniMagick::Tool) -> XXX } -> MiniMagick::Tool,,"def stack
+      self << ""(""
+      yield self
+      self << "")""
+    end"
+MiniMagick::Tool,stdin,() -> MiniMagick::Tool,,"def stdin
+      self << ""-""
+    end"
+MiniMagick::Tool,stdout,() -> MiniMagick::Tool,,"def stdout
+      self << ""-""
+    end"
+MiniMagick::Tool,clone,(*XXX) -> MiniMagick::Tool,,"def clone(*args)
+      self << '-clone'
+      self.merge!(args)
+      self
+    end"
+MiniMagick::Tool,method_missing,"(String, *XXX) -> MiniMagick::Tool",,"def method_missing(name, *args)
+      option = ""-#{name.to_s.tr('_', '-')}""
+      self << option
+      self.merge!(args)
+      self
+    end"
+MiniMagick::Tool::Compare,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""compare"", *args)
+      end"
+MiniMagick::Tool::Mogrify,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""mogrify"", *args)
+      end"
+MiniMagick::Tool::MogrifyRestricted,format,(*XXX) -> XXX,,"def format(*args)
+        fail NoMethodError,
+          ""you must call #format on a MiniMagick::Image directly""
+      end"
+MiniMagick::Tool::Identify,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""identify"", *args)
+      end"
+MiniMagick::Tool::Montage,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""montage"", *args)
+      end"
+MiniMagick::Tool::Composite,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""composite"", *args)
+      end"
+MiniMagick::Tool::Magick,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""magick"", *args)
+      end"
+MiniMagick::Tool::Display,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""display"", *args)
+      end"
+MiniMagick::Tool::Stream,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""stream"", *args)
+      end"
+MiniMagick::Tool::Convert,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""convert"", *args)
+      end"
+MiniMagick::Tool::Conjure,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""conjure"", *args)
+      end"
+MiniMagick::Tool::Import,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""import"", *args)
+      end"
+MiniMagick::Tool::Animate,initialize,(*XXX) -> self,,"def initialize(*args)
+        super(""animate"", *args)
+      end"
+MiniMagick::Utilities,which,(XXX) -> String,,"def which(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      ENV.fetch('PATH').split(File::PATH_SEPARATOR).each do |path|
+        exts.each do |ext|
+          exe = File.join(path, ""#{cmd}#{ext}"")
+          return exe if File.executable? exe
+        end
+      end
+      nil
+    end"
