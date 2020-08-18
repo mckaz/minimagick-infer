@@ -32,4 +32,4 @@ RDL.infer_all "./lib/mini_magick/tool/"
 #RDL.infer_file "./lib/mini_magick/tool/compare.rb"
 
 
-RDL.do_infer :files, num_times: 11
+RDL.do_infer :files#, num_times: 11

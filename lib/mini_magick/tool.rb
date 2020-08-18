@@ -55,8 +55,8 @@ module MiniMagick
 
       @name  = name
       @args  = []
-      #@whiny = options.is_a?(Hash) ? RDL.type_cast(options, "Hash<Symbol, %bool>").fetch(:whiny, MiniMagick.whiny) : options
-      @whiny = options.is_a?(Hash) ? options.fetch(:whiny, MiniMagick.whiny) : options
+      @whiny = options.is_a?(Hash) ? RDL.type_cast(options, "Hash<Symbol, %bool>").fetch(:whiny, MiniMagick.whiny) : options
+      #@whiny = options.is_a?(Hash) ? options.fetch(:whiny, MiniMagick.whiny) : options
     end
 
     ##

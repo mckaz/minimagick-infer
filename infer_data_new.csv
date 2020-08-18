@@ -1,4 +1,6 @@
-Class,Method,Inferred Type,Original Type,Source Code,Comments
+Class,Method/Variable,Inferred Type,Original Type,Source Code,Comments
+_Globals,$stdout,XXX,,
+_Globals,$stderr,[ print: (XXX) -> XXX ],,
 [s]MiniMagick,version,() -> XXX,,"def self.version
     Gem::Version.new VERSION::STRING
   end"
@@ -57,6 +59,7 @@ Class,Method,Inferred Type,Original Type,Source Code,Comments
 MiniMagick::Configuration,configure,() { (MiniMagick::Configuration) -> XXX } -> XXX,,"def configure
       yield self
     end"
+MiniMagick::Configuration,@processor,String,,
 MiniMagick::Configuration,processor,() -> String,,"def processor
       @processor ||= CLI_DETECTION.values.detect do |processor|
         MiniMagick::Utilities.which(processor)
@@ -71,6 +74,7 @@ MiniMagick::Configuration,processor=,([ to_s: () -> String ]) -> XXX,,"def proce
           "", was set to #{@processor.inspect}""
       end
     end"
+MiniMagick::Configuration,@cli,[ inspect: () -> XXX ],,
 MiniMagick::Configuration,cli=,([ inspect: () -> XXX ]) -> nil,,"def cli=(value)
       @cli = value
 
@@ -87,6 +91,9 @@ MiniMagick::Configuration,debug=,(XXX) -> XXX,,"def debug=(value)
 MiniMagick::Configuration,reload_tools,() -> nil,,"def reload_tools
       warn ""MiniMagick.reload_tools is deprecated because it is no longer necessary""
     end"
+MiniMagick::Image,@path,String,,
+MiniMagick::Image,@tempfile,Tempfile,,
+MiniMagick::Image,@info,MiniMagick::Image::Info,,
 MiniMagick::Image,initialize,"([ to_s: () -> String ], ?Tempfile) { XXX } -> self",,"def initialize(input_path, tempfile = nil, &block)
       @path = input_path.to_s
       @tempfile = tempfile
@@ -142,7 +149,7 @@ MiniMagick::Image,get_pixels,() -> XXX,,"def get_pixels
 
       pixels
     end"
-MiniMagick::Image,format,"(XXX, ?XXX, ?[ each: () {(XXX, XXX) -> XXX} -> XXX ]) { (([ <<: (XXX) -> XXX ] and [ send: (String, XXX) -> XXX ])) -> XXX } -> MiniMagick::Image",,"def format(format, page = 0, read_opts={})
+MiniMagick::Image,format,"(XXX, ?XXX, ?[ each: () {(XXX, XXX) -> XXX} -> XXX ]) { (([ <<: ((String or XXX)) -> XXX ] and [ send: (String, XXX) -> XXX ])) -> XXX } -> MiniMagick::Image",,"def format(format, page = 0, read_opts={})
       if @tempfile
         new_tempfile = MiniMagick::Utilities.tempfile("".#{format}"")
         new_path = new_tempfile.path
@@ -254,11 +261,13 @@ MiniMagick::Image,landscape?,() -> (false or true),,"def landscape?
 MiniMagick::Image,portrait?,() -> (false or true),,"def portrait?
       height > width
     end"
+MiniMagick::Image::Info,@path,String,,
+MiniMagick::Image::Info,@info,"Hash<String, XXX>",,
 MiniMagick::Image::Info,initialize,(String) -> self,,"def initialize(path)
         @path = path
         @info = {}
       end"
-MiniMagick::Image::Info,[],"(XXX, *XXX) -> String",,"def [](value, *args)
+MiniMagick::Image::Info,[],"(String, *XXX) -> XXX",,"def [](value, *args)
         case value
         when ""format"", ""width"", ""height"", ""dimensions"", ""size"", ""human_size""
           cheap_info(value)
@@ -282,10 +291,10 @@ MiniMagick::Image::Info,[],"(XXX, *XXX) -> String",,"def [](value, *args)
           raw(value)
         end
       end"
-MiniMagick::Image::Info,clear,() -> XXX,,"def clear
+MiniMagick::Image::Info,clear,"() -> Hash<String, XXX>",,"def clear
         @info.clear
       end"
-MiniMagick::Image::Info,cheap_info,(XXX) -> XXX,,"def cheap_info(value)
+MiniMagick::Image::Info,cheap_info,(String) -> (XXX or u),,"def cheap_info(value)
         @info.fetch(value) do
           format, width, height, size = RDL.type_cast(self[""%m %w %h %b""], ""String"").split("" "")
 
@@ -319,7 +328,7 @@ MiniMagick::Image::Info,resolution,(?XXX) -> XXX,,"def resolution(unit = nil)
         end
         output.split("" "").map(&:to_i)
       end"
-MiniMagick::Image::Info,raw_exif,(XXX) -> String,,"def raw_exif(value)
+MiniMagick::Image::Info,raw_exif,(XXX) -> XXX,,"def raw_exif(value)
         self[""%[#{value}]""]
       end"
 MiniMagick::Image::Info,exif,() -> XXX,,"def exif
@@ -412,12 +421,16 @@ MiniMagick::Shell,log,(XXX) { XXX } -> nil,,"def log(command, &block)
       MiniMagick.logger.debug ""[%.2fs] %s"" % [duration, command]
       value
     end"
-MiniMagick::Tool,initialize,"(String, ?[ is_a?: (Class) -> XXX ]) -> self",,"def initialize(name, options = {})
+MiniMagick::Tool,@name,String,,
+MiniMagick::Tool,@args,Array<XXX>,,
+MiniMagick::Tool,@whiny,XXX,,
+MiniMagick::Tool,initialize,"(String, ?([ ==: (false) -> XXX ] and [ is_a?: (Class) -> XXX ])) -> self",,"def initialize(name, options = {})
       warn ""MiniMagick::Tool.new(false) is deprecated and will be removed in MiniMagick 5, use MiniMagick::Tool.new(whiny: false) instead."" if !options.is_a?(Hash)
 
       @name  = name
       @args  = []
       @whiny = options.is_a?(Hash) ? RDL.type_cast(options, ""Hash<Symbol, %bool>"").fetch(:whiny, MiniMagick.whiny) : options
+      #@whiny = options.is_a?(Hash) ? options.fetch(:whiny, MiniMagick.whiny) : options
     end"
 MiniMagick::Tool,call,"(*XXX) { ([ chomp: (String) -> XXX ], XXX, XXX) -> XXX } -> XXX",,"def call(*args)
       options = args[-1].is_a?(Hash) ? args.pop : {}
@@ -433,7 +446,7 @@ MiniMagick::Tool,call,"(*XXX) { ([ chomp: (String) -> XXX ], XXX, XXX) -> XXX } 
 
       stdout.chomp(""\n"")
     end"
-MiniMagick::Tool,command,"() -> [XXX, XXX]",,"def command
+MiniMagick::Tool,command,"() -> [String, XXX]",,"def command
       [*executable, *args]
     end"
 MiniMagick::Tool,executable,() -> Array<String>,,"def executable
@@ -479,6 +492,7 @@ MiniMagick::Tool,method_missing,"(String, *XXX) -> MiniMagick::Tool",,"def metho
       self.merge!(args)
       self
     end"
+MiniMagick::Tool,@option_methods,(XXX or XXX),,
 MiniMagick::Tool::Compare,initialize,(*XXX) -> self,,"def initialize(*args)
         super(""compare"", *args)
       end"
