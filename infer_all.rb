@@ -3,6 +3,7 @@ require_relative './lib/mini_magick'
 require 'rdl'
 RDL::Config.instance.number_mode = true
 require 'types/core'
+require './orig_types'
 
 RDL.no_infer_meth MiniMagick::Configuration, :cli ## mixin
 RDL.no_infer_meth MiniMagick::Configuration, :cli_path ## mixin
@@ -32,4 +33,4 @@ RDL.infer_all "./lib/mini_magick/tool/"
 #RDL.infer_file "./lib/mini_magick/tool/compare.rb"
 
 
-RDL.do_infer :files#, num_times: 11
+RDL.do_infer :files, num_times: 1

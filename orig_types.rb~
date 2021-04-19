@@ -1,0 +1,95 @@
+RDL.orig_type Object.const_get('MiniMagick'), 'self.with_cli', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick'), 'self.imagemagick?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick'), 'self.imagemagick7?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick'), 'self.graphicsmagick?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick'), 'self.cli_version', '() -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'self.new', '() -> MiniMagick::Tool or String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'initialize', '(%bool) -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'call', '() -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'command', '() -> Array<String>', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'executable', '() -> Array<String>', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), '<<', '() -> MiniMagick::Tool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'merge!', '() -> MiniMagick::Tool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), '+', '() -> MiniMagick::Tool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'stack', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'stdin', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'stdout', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'clone', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'method_missing', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool'), 'self.option_methods', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'self.read', '(#read or String, String) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'self.import_pixels', '(String, Integer, Integer, Integer, String, String) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'self.open', '(String, String, Hash) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'self.create', '(String, %bool) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'self.attribute', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'initialize', '(String or Pathname) -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), '==', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'hash', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'to_blob', '() -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'valid?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'validate!', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), '[]', '(String) -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'layers', '() -> Array<MiniMagick::Image>', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'get_pixels', '() -> Array', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'format', '(String, Integer, Hash) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'combine_options', '() -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'method_missing', '() -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'respond_to_missing?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'write', '(String or Pathname or #read) -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'composite', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'collapse!', '(Integer) -> MiniMagick::Image', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'destroy!', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'identify', '() -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'run_command', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'mogrify', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'layer?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'landscape?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image'), 'portrait?', '() -> %bool', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Shell'), 'run', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Shell'), 'execute', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Shell'), 'execute_open3', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Shell'), 'execute_posix_spawn', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Shell'), 'log', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick'), 'self.version', '() -> Gem::Version', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Utilities'), 'which', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Utilities'), 'self.which', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Utilities'), 'tempfile', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Utilities'), 'self.tempfile', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), '[]', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'clear', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'cheap_info', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'colorspace', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'mime_type', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'resolution', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'raw_exif', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'exif', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'raw', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'signature', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'details', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'data', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'identify', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'decode_comma_separated_ascii_characters', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Image::Info'), 'path', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Import'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Magick'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Stream'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Animate'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Compare'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Conjure'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Convert'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Display'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Mogrify'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Montage'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'cli', '() -> Symbol', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'cli=', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'self.extended', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'configure', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'processor', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'processor=', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'cli_path', '() -> String', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'debug=', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Configuration'), 'reload_tools', '() -> %bot', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Identify'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::Composite'), 'initialize', '() -> self', wrap: false, typecheck: :later
+RDL.orig_type Object.const_get('MiniMagick::Tool::MogrifyRestricted'), 'format', '() -> %bot', wrap: false, typecheck: :later
